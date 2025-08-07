@@ -1,31 +1,14 @@
-version: "3.9"
-
 services:
-  backend:
-    build: ./apps/backend
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./apps/backend:/app
+  airflow:
+    build: .        # 현재 디렉터리의 Dockerfile을 사용
+    env_file:
+      - .env       # .env에서 KAKAO_REST_API_KEY를 로드
     environment:
-      - PYTHONPATH=/app
-      - KAKAO_REST_API_KEY=your-kakao-api-key
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  frontend:
-    build: ./apps/frontend
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      SCHOOL_DATA_CSV: /opt/airflow/mlops/middle_schools.csv
     ports:
-      - "5173:5173"
+      - '8080:8080'  # Host 8080 ↔ Container 8080
     volumes:
-      - ./apps/frontend:/app
-      - /app/node_modules
-    environment:
-      - VITE_API_URL=http://localhost:8000
-    depends_on:
-      - backend
+      - ./mlops:/opt/airflow/mlops   # 코드 라이브 마운트
+      - ./airflow/dags/mlops_project:/opt/airflow/dags
     restart: unless-stopped
